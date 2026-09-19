@@ -156,18 +156,19 @@ public class MainActivity extends Activity {
     }
 
     private void probe() {
-        boolean ok = false;
+        boolean isUp = false;
         Socket s = null;
         try {
             s = new Socket();
             s.connect(new InetSocketAddress(HOST, PORT), 800);
-            ok = true;
+            isUp = true;
         } catch (IOException e) {
-            ok = false;
+            isUp = false;
         } finally {
             if (s != null) { try { s.close(); } catch (IOException ignored) {} }
         }
 
+        final boolean ok = isUp;
         final boolean wasUp = botReachable;
         botReachable = ok;
 
