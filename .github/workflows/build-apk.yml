@@ -8,6 +8,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      ANDROID_HOME: /usr/local/lib/android/sdk
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -18,19 +20,29 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Install Android SDK packages
+      - name: Prepare Android SDK
         run: |
-          yes | sdkmanager --licenses > /dev/null 2>&1 || true
-          sdkmanager --install "platforms;android-34" "build-tools;34.0.0"
+          SDKMAN="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          if [ ! -x "$SDKMAN" ]; then SDKMAN="$(command -v sdkmanager || true)"; fi
+          echo "sdkmanager => $SDKMAN"
+          if [ -n "$SDKMAN" ]; then
+            yes | "$SDKMAN" --licenses > /dev/null 2>&1 || true
+            "$SDKMAN" --install "platforms;android-34" "build-tools;34.0.0" || echo "(تعذر التثبيت الصريح — الاعتماد على الحزم المسبقة و/أو التنزيل التلقائي لـ AGP)"
+          else
+            echo "sdkmanager غير موجود — سيقوم AGP بالتنزيل التلقائي بعد قبول التراخيص"
+            ls "$ANDROID_HOME" || true
+          fi
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null 2>&1 || true
 
       - name: Build debug APK
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew --no-daemon assembleDebug
+          ./gradlew --no-daemon assembleDebug --stacktrace
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: WA-Agent-panel-debug-apk
           path: android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
