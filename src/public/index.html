@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>وكيل خدمة العملاء — واتساب</title>
+<style>
+  :root { --p:#128C7E; --pd:#075E54; --bg:#f0f2f5; --card:#fff; --txt:#111b21; --mut:#667781; }
+  * { box-sizing:border-box; font-family:'Segoe UI', Tahoma, sans-serif; }
+  body { margin:0; background:var(--bg); color:var(--txt); }
+  header { background:var(--pd); color:#fff; padding:14px 18px; display:flex; align-items:center; gap:10px; position:sticky; top:0; z-index:5; }
+  header h1 { font-size:18px; margin:0; flex:1; }
+  .badge { background:#fff2; padding:4px 12px; border-radius:20px; font-size:13px; }
+  .badge.on { background:#25D366; color:#063; font-weight:bold; }
+  .badge.off { background:#ffb4a9; color:#7a1f14; }
+  main { max-width:760px; margin:14px auto; padding:0 12px; display:grid; gap:14px; }
+  .card { background:var(--card); border-radius:14px; padding:16px; box-shadow:0 1px 3px #0001; }
+  .card h2 { font-size:16px; margin:0 0 10px; color:var(--pd); }
+  label { display:block; font-size:13px; color:var(--mut); margin:10px 0 4px; }
+  textarea, input[type=text], input[type=number] { width:100%; border:1px solid #d1d7db; border-radius:10px; padding:10px; font-size:14px; background:#fafafa; }
+  textarea { min-height:130px; resize:vertical; line-height:1.8; }
+  .row { display:flex; gap:10px; flex-wrap:wrap; }
+  .row > div { flex:1; min-width:130px; }
+  .switch { display:flex; align-items:center; justify-content:space-between; padding:8px 0; border-bottom:1px solid #eee; font-size:14px; }
+  .switch:last-child { border-bottom:none; }
+  .tg { position:relative; width:46px; height:26px; }
+  .tg input { opacity:0; width:0; height:0; }
+  .tg span { position:absolute; inset:0; background:#ccc; border-radius:26px; cursor:pointer; transition:.2s; }
+  .tg span:before { content:''; position:absolute; width:20px; height:20px; right:3px; top:3px; background:#fff; border-radius:50%; transition:.2s; }
+  .tg input:checked + span { background:var(--p); }
+  .tg input:checked + span:before { transform:translateX(-20px); }
+  button { background:var(--p); color:#fff; border:none; border-radius:10px; padding:11px 22px; font-size:15px; cursor:pointer; font-weight:bold; }
+  button.sec { background:#eee; color:var(--txt); }
+  .chip { display:inline-flex; align-items:center; gap:6px; background:#e7f6f2; color:var(--pd); border-radius:20px; padding:5px 12px; margin:3px; font-size:13px; }
+  .chip b { cursor:pointer; color:#c0392b; }
+  .qrbox { text-align:center; padding:10px; }
+  .qrbox img { border:6px solid var(--pd); border-radius:12px; max-width:280px; width:100%; }
+  .logs { max-height:320px; overflow-y:auto; font-size:13px; }
+  .log { padding:8px 10px; border-right:4px solid #ccc; margin:6px 0; background:#fafafa; border-radius:8px; line-height:1.6; }
+  .log.match { border-color:#f39c12; background:#fef9e7; }
+  .log.sent { border-color:#25D366; background:#eafaf1; }
+  .log.error { border-color:#e74c3c; background:#fdedec; }
+  .log.ok { border-color:var(--p); }
+  .log .t { color:var(--mut); font-size:11px; display:block; }
+  .hint { font-size:12px; color:var(--mut); line-height:1.8; }
+  .stats { display:flex; gap:10px; flex-wrap:wrap; }
+  .stat { flex:1; min-width:100px; background:#f8f9fa; border-radius:10px; padding:10px; text-align:center; }
+  .stat b { display:block; font-size:22px; color:var(--pd); }
+  .stat span { font-size:12px; color:var(--mut); }
+  .vars { background:#eef6ff; border-radius:8px; padding:8px 12px; font-size:12px; margin-top:6px; line-height:2; }
+  code { background:#dde7f0; padding:1px 6px; border-radius:5px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🤖 وكيل خدمة العملاء — واتساب</h1>
+  <span id="stateBadge" class="badge">جارٍ التحميل…</span>
+</header>
+<main>
+
+  <div class="card qrbox" id="qrCard" style="display:none">
+    <h2>📷 امسح رمز الربط</h2>
+    <p class="hint">افتح واتساب ← <b>الأجهزة المرتبطة</b> ← <b>ربط جهاز آخر</b> ← امسح الرمز</p>
+    <img id="qrImg" alt="QR">
+  </div>
+
+  <div class="card">
+    <h2>📊 الحالة</h2>
+    <div class="stats">
+      <div class="stat"><b id="stMatched">0</b><span>طلبات مرصودة</span></div>
+      <div class="stat"><b id="stSent">0</b><span>ردود مُرسلة</span></div>
+      <div class="stat"><b id="stSkipped">0</b><span>ردود متجاهلة</span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>⚙️ الإعدادات</h2>
+    <div class="switch"><span>🟢 تشغيل الرصد والرد التلقائي</span><label class="tg"><input type="checkbox" id="enabled"><span></span></label></div>
+    <div class="switch"><span>👥 رصد رسائل المجموعات</span><label class="tg"><input type="checkbox" id="listenGroups"><span></span></label></div>
+    <div class="switch"><span>💬 رصد الرسائل الخاصة أيضاً</span><label class="tg"><input type="checkbox" id="listenPrivate"><span></span></label></div>
+    <div class="switch"><span>📱 إشعارات أندرويد (Termux:API)</span><label class="tg"><input type="checkbox" id="notifyTermux"><span></span></label></div>
+    <label>✉️ رسالة الرد الخاص (تُحدَّد من هنا):</label>
+    <textarea id="replyTemplate"></textarea>
+    <div class="vars">المتغيرات: <code>{name}</code> رقم المُرسل · <code>{group}</code> اسم المجموعة · <code>{message}</code> نص رسالته</div>
+    <label>🔑 كلمات مفتاحية مخصصة (أي رسالة تحتويها تُعتبر طلب خدمة):</label>
+    <input type="text" id="kwInput" placeholder="اكتب كلمة واضغط Enter">
+    <div id="kwList"></div>
+    <div class="row">
+      <div><label>تهدئة لكل شخص (ساعة)</label><input type="number" id="cooldownHours" min="0"></div>
+      <div><label>حد الردود لكل شخص يومياً</label><input type="number" id="dailyLimitPerSender" min="0"></div>
+    </div>
+    <div class="row" style="margin-top:12px">
+      <div><label>أدنى تأخير قبل الرد (ثانية)</label><input type="number" id="minDelaySeconds" min="0"></div>
+      <div><label>أقصى تأخير (ثانية)</label><input type="number" id="maxDelaySeconds" min="0"></div>
+    </div>
+    <p style="text-align:left;margin:14px 0 0">
+      <button class="sec" onclick="relink()">🔄 إعادة ربط (QR جديد)</button>
+      <button onclick="saveCfg()">💾 حفظ الإعدادات</button>
+    </p>
+  </div>
+
+  <div class="card">
+    <h2>🔔 السجل المباشر — الطلبات المرصودة والإشعارات</h2>
+    <div class="logs" id="logs"></div>
+  </div>
+
+  <div class="card">
+    <h2>⚠️ تنبيه مهم</h2>
+    <p class="hint">الردود التلقائية الجماعية قد تؤدي لتقييد أو حظر رقمك من واتساب إذا أُسئ استخدامها. التزم بفترات التهدئة والحدود اليومية، وردّ فقط على من طلب فعلاً. استخدم على مسؤوليتك.</p>
+  </div>
+
+</main>
+<script>
+let keywords = [];
+async function refresh() {
+  const s = await (await fetch('/api/status')).json();
+  const b = document.getElementById('stateBadge');
+  if (s.connState === 'connected') { b.textContent = '🟢 متصل'; b.className = 'badge on'; document.getElementById('qrCard').style.display='none'; }
+  else if (s.qr) { b.textContent = '📷 بانتظار المسح'; b.className = 'badge off'; document.getElementById('qrCard').style.display='block'; document.getElementById('qrImg').src = s.qr; }
+  else { b.textContent = '🔴 غير متصل'; b.className = 'badge off'; }
+  document.getElementById('stMatched').textContent = s.stats.matched||0;
+  document.getElementById('stSent').textContent = s.stats.sent||0;
+  document.getElementById('stSkipped').textContent = s.stats.skipped||0;
+  document.getElementById('logs').innerHTML = (s.logs||[]).map(l =>
+    `<div class="log ${l.type}"><span class="t">${new Date(l.ts).toLocaleString('ar')}</span>${l.text}${l.extra && l.extra.message ? '<br>💬 '+l.extra.message : ''}</div>`).join('');
+}
+async function loadCfg() {
+  const c = await (await fetch('/api/config')).json();
+  document.getElementById('enabled').checked = c.enabled;
+  document.getElementById('listenGroups').checked = c.listenGroups;
+  document.getElementById('listenPrivate').checked = c.listenPrivate;
+  document.getElementById('notifyTermux').checked = c.notifyTermux;
+  document.getElementById('replyTemplate').value = c.replyTemplate;
+  document.getElementById('cooldownHours').value = c.cooldownHours;
+  document.getElementById('dailyLimitPerSender').value = c.dailyLimitPerSender;
+  document.getElementById('minDelaySeconds').value = c.minDelaySeconds;
+  document.getElementById('maxDelaySeconds').value = c.maxDelaySeconds;
+  keywords = c.keywords || [];
+  renderKw();
+}
+function renderKw() {
+  document.getElementById('kwList').innerHTML = keywords.map((k,i)=>`<span class="chip">${k} <b onclick="delKw(${i})">✕</b></span>`).join('');
+}
+function addKw() {
+  const v = document.getElementById('kwInput').value.trim();
+  if (v && !keywords.includes(v)) { keywords.push(v); renderKw(); saveCfg(); }
+  document.getElementById('kwInput').value = '';
+}
+function delKw(i) { keywords.splice(i,1); renderKw(); saveCfg(); }
+async function saveCfg() {
+  const body = {
+    enabled: document.getElementById('enabled').checked,
+    listenGroups: document.getElementById('listenGroups').checked,
+    listenPrivate: document.getElementById('listenPrivate').checked,
+    notifyTermux: document.getElementById('notifyTermux').checked,
+    replyTemplate: document.getElementById('replyTemplate').value,
+    keywords: keywords,
+    cooldownHours: +document.getElementById('cooldownHours').value,
+    dailyLimitPerSender: +document.getElementById('dailyLimitPerSender').value,
+    minDelaySeconds: +document.getElementById('minDelaySeconds').value,
+    maxDelaySeconds: +document.getElementById('maxDelaySeconds').value
+  };
+  await fetch('/api/config', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+  alert('✅ تم الحفظ');
+}
+async function relink() {
+  if (!confirm('سيتم حذف الجلسة الحالية ويطلب منك مسح QR جديد. متابعة؟')) return;
+  await fetch('/api/relink', { method:'POST' });
+  alert('أعد تشغيل البوت ليظهر رمز QR جديد');
+}
+document.getElementById('kwInput').addEventListener('keydown', e => { if (e.key==='Enter'){ e.preventDefault(); addKw(); }});
+loadCfg(); refresh(); setInterval(refresh, 4000);
+</script>
+</body>
+</html>

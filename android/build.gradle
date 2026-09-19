@@ -1,0 +1,4 @@
+// ملف البناء الجذري — يعرّف إضافة أندرويد لكل الوحدات
+plugins {
+    id 'com.android.application' version '8.5.2' apply false
+}

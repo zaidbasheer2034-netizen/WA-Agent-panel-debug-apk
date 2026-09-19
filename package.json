@@ -1,0 +1,20 @@
+{
+  "name": "wa-service-agent",
+  "version": "1.0.0",
+  "description": "وكيل خدمة العملاء على واتساب — يرصد طلبات الخدمة في المجموعات ويردّ خاصاً تلقائياً",
+  "main": "src/index.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@whiskeysockets/baileys": "^6.7.18",
+    "express": "^4.19.2",
+    "pino": "^9.4.0",
+    "qrcode": "^1.5.4",
+    "qrcode-terminal": "^0.12.0"
+  }
+}

@@ -1,0 +1,33 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.waagent.panel'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId 'com.waagent.panel'
+        minSdk 24
+        targetSdk 34
+        versionCode 1
+        versionName '1.0'
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            // توقيع نسخة release بمفتاح debug ليتمكن المستخدم من تثبيتها مباشرة
+            signingConfig signingConfigs.debug
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+}
+
+// لا توجد اعتماديات خارجية — التطبيق يستخدم Android SDK فقط
+dependencies {
+}

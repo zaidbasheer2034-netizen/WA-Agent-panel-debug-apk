@@ -1,0 +1,19 @@
+# Node
+node_modules/
+bot.log
+*.log
+.DS_Store
+
+# بيانات جلسة واتساب والإعدادات المحلية — لا ترفعها أبداً إلى GitHub
+wa_auth/
+data/
+
+# Gradle وأندرويد — مخرجات البناء والمفاتيح
+.gradle/
+build/
+local.properties
+*.apk
+*.aab
+*.idsig
+*.keystore
+*.jks
